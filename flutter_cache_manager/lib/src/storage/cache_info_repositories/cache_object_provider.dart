@@ -27,6 +27,8 @@ class CacheObjectProvider extends CacheInfoRepository
     }
     var path = await _getPath();
     await File(path).parent.create(recursive: true);
+    await _dropCorruptedDb(path);
+
     db = await openDatabase(path, version: 3,
         onCreate: (Database db, int version) async {
       await db.execute('''
@@ -124,7 +126,7 @@ class CacheObjectProvider extends CacheInfoRepository
   @override
   Future<int> deleteAll(Iterable<int> ids) {
     return db!.delete(_tableCacheObject,
-        where: '${CacheObject.columnId} IN (' + ids.join(',') + ')');
+        where: '${CacheObject.columnId} IN (${ids.join(',')})');
   }
 
   @override
@@ -212,6 +214,28 @@ class CacheObjectProvider extends CacheInfoRepository
       } on FileSystemException {
         // If we can not read the old db, a new one will be created.
       }
+    }
+  }
+
+  static Future<void> _dropCorruptedDb(String path) async {
+    final exists = await File(path).exists();
+    if (!exists) {
+      return;
+    }
+
+    Database? readDb;
+    bool isIntegral = true;
+
+    try {
+      readDb = await openReadOnlyDatabase(path);
+      final check = await readDb.rawQuery("pragma integrity_check");
+      isIntegral = check.length == 1 && check[0].values.first == "ok";
+    } finally {
+      await readDb?.close();
+    }
+
+    if (!isIntegral) {
+      await deleteDatabase(path);
     }
   }
 }

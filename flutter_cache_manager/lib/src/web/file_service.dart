@@ -20,9 +20,10 @@ abstract class FileService {
 /// [HttpFileService] is the most common file service and the default for
 /// [WebHelper]. One can easily adapt it to use dio or any other http client.
 class HttpFileService extends FileService {
+  final int fileValidity;
   final http.Client _httpClient;
 
-  HttpFileService({http.Client? httpClient})
+  HttpFileService({http.Client? httpClient, this.fileValidity = -1})
       : _httpClient = httpClient ?? http.Client();
 
   @override
@@ -34,7 +35,7 @@ class HttpFileService extends FileService {
     }
     final httpResponse = await _httpClient.send(req);
 
-    return HttpGetResponse(httpResponse);
+    return HttpGetResponse(httpResponse, fileValidity);
   }
 }
 
@@ -62,8 +63,8 @@ abstract class FileServiceResponse {
 
 /// Basic implementation of a [FileServiceResponse] for http requests.
 class HttpGetResponse implements FileServiceResponse {
-  HttpGetResponse(this._response);
-
+  HttpGetResponse(this._response, this.fileValidity);
+  final int fileValidity;
   final DateTime _receivedTime = clock.now();
 
   final http.StreamedResponse _response;
@@ -85,18 +86,24 @@ class HttpGetResponse implements FileServiceResponse {
   DateTime get validTill {
     // Without a cache-control header we keep the file for a week
     var ageDuration = const Duration(days: 7);
-    final controlHeader = _header(HttpHeaders.cacheControlHeader);
-    if (controlHeader != null) {
-      final controlSettings = controlHeader.split(',');
-      for (final setting in controlSettings) {
-        final sanitizedSetting = setting.trim().toLowerCase();
-        if (sanitizedSetting == 'no-cache') {
-          ageDuration = const Duration();
-        }
-        if (sanitizedSetting.startsWith('max-age=')) {
-          var validSeconds = int.tryParse(sanitizedSetting.split('=')[1]) ?? 0;
-          if (validSeconds > 0) {
-            ageDuration = Duration(seconds: validSeconds);
+    if (fileValidity >= 0) {
+      ageDuration = Duration(seconds: fileValidity);
+    } else {
+      // Without a cache-control header we keep the file for a week
+      final controlHeader = _header(HttpHeaders.cacheControlHeader);
+      if (controlHeader != null) {
+        final controlSettings = controlHeader.split(',');
+        for (final setting in controlSettings) {
+          final sanitizedSetting = setting.trim().toLowerCase();
+          if (sanitizedSetting == 'no-cache') {
+            ageDuration = const Duration();
+          }
+          if (sanitizedSetting.startsWith('max-age=')) {
+            var validSeconds =
+                int.tryParse(sanitizedSetting.split('=')[1]) ?? 0;
+            if (validSeconds > 0) {
+              ageDuration = Duration(seconds: validSeconds);
+            }
           }
         }
       }

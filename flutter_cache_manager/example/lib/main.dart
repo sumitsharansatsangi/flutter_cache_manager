@@ -18,18 +18,18 @@ const url = 'https://blurha.sh/assets/images/img1.jpg';
 
 /// Example [Widget] showing the functionalities of flutter_cache_manager
 class CacheManagerPage extends StatefulWidget {
-  const CacheManagerPage({Key key}) : super(key: key);
+  const CacheManagerPage({super.key});
 
   static ExamplePage createPage() {
     return ExamplePage(Icons.save_alt, (context) => const CacheManagerPage());
   }
 
   @override
-  _CacheManagerPageState createState() => _CacheManagerPageState();
+  CacheManagerPageState createState() => CacheManagerPageState();
 }
 
-class _CacheManagerPageState extends State<CacheManagerPage> {
-  Stream<FileResponse> fileStream;
+class CacheManagerPageState extends State<CacheManagerPage> {
+  Stream<FileResponse>? fileStream;
 
   void _downloadFile() {
     setState(() {
@@ -48,13 +48,14 @@ class _CacheManagerPageState extends State<CacheManagerPage> {
           downloadFile: _downloadFile,
         ),
       );
+    } else {
+      return DownloadPage(
+        fileStream: fileStream!,
+        downloadFile: _downloadFile,
+        clearCache: _clearCache,
+        removeFile: _removeFile,
+      );
     }
-    return DownloadPage(
-      fileStream: fileStream,
-      downloadFile: _downloadFile,
-      clearCache: _clearCache,
-      removeFile: _removeFile,
-    );
   }
 
   void _clearCache() {
