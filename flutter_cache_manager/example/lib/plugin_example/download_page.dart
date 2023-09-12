@@ -8,16 +8,16 @@ import 'progress_indicator.dart' as p_i;
 /// A [Widget] showing the information about the status of the [FileResponse]
 class DownloadPage extends StatelessWidget {
   final Stream<FileResponse> fileStream;
-  final VoidCallback? downloadFile;
-  final VoidCallback? clearCache;
-  final VoidCallback? removeFile;
+  final VoidCallback downloadFile;
+  final VoidCallback clearCache;
+  final VoidCallback removeFile;
 
   const DownloadPage({
-    super.key,
     required this.fileStream,
-    this.downloadFile,
-    this.clearCache,
-    this.removeFile,
+    required this.downloadFile,
+    required this.clearCache,
+    required this.removeFile,
+    super.key,
   });
 
   @override
@@ -26,8 +26,7 @@ class DownloadPage extends StatelessWidget {
       stream: fileStream,
       builder: (context, snapshot) {
         Widget body;
-
-        var loading = !snapshot.hasData || snapshot.data is DownloadProgress;
+        final loading = !snapshot.hasData || snapshot.data is DownloadProgress;
 
         if (snapshot.hasError) {
           body = ListTile(
@@ -36,23 +35,20 @@ class DownloadPage extends StatelessWidget {
           );
         } else if (loading) {
           body = p_i.ProgressIndicator(
-              progress: snapshot.data as DownloadProgress);
+            progress: snapshot.data as DownloadProgress?,
+          );
         } else {
           body = FileInfoWidget(
-            fileInfo: snapshot.data as FileInfo,
+            fileInfo: snapshot.requireData as FileInfo,
             clearCache: clearCache,
             removeFile: removeFile,
           );
         }
 
         return Scaffold(
-          appBar: null,
           body: body,
-          floatingActionButton: !loading && downloadFile != null
-              ? Fab(
-                  downloadFile: downloadFile!,
-                )
-              : null,
+          floatingActionButton:
+              !loading ? Fab(downloadFile: downloadFile) : null,
         );
       },
     );

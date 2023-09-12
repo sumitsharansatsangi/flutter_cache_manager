@@ -8,16 +8,16 @@ class FileInfoWidget extends StatelessWidget {
   final VoidCallback? removeFile;
 
   const FileInfoWidget({
-    super.key,
+    required this.clearCache,
+    required this.removeFile,
     required this.fileInfo,
-    this.clearCache,
-    this.removeFile,
+    super.key,
   });
 
   @override
   Widget build(BuildContext context) {
     return ListView(
-      children: <Widget>[
+      children: [
         ListTile(
           title: const Text('Original URL'),
           subtitle: Text(fileInfo.originalUrl),
@@ -35,16 +35,14 @@ class FileInfoWidget extends StatelessWidget {
           subtitle: Text(fileInfo.validTill.toIso8601String()),
         ),
         Padding(
-          padding: const EdgeInsets.all(10.0),
-          // ignore: deprecated_member_use
+          padding: const EdgeInsets.all(10),
           child: ElevatedButton(
             onPressed: clearCache,
             child: const Text('CLEAR CACHE'),
           ),
         ),
         Padding(
-          padding: const EdgeInsets.all(10.0),
-          // ignore: deprecated_member_use
+          padding: const EdgeInsets.all(10),
           child: ElevatedButton(
             onPressed: removeFile,
             child: const Text('REMOVE FILE'),

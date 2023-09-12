@@ -13,15 +13,15 @@ class ProgressIndicator extends StatelessWidget {
     return Center(
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
+        children: [
           SizedBox(
-            width: 50.0,
-            height: 50.0,
-            child: CircularProgressIndicator(
+            width: 50,
+            height: 50,
+            child: CircularProgressIndicator.adaptive(
               value: progress?.progress,
             ),
           ),
-          const SizedBox(width: 20.0),
+          const SizedBox(width: 20),
           const Text('Downloading'),
         ],
       ),
