@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:flutter_cache_manager/src/storage/cache_object.dart';
 import 'package:flutter_cache_manager/src/storage/file_system/file_system.dart';
 
 ///Flutter Cache Manager
@@ -156,7 +155,7 @@ class CacheStore {
     final allObjects = await provider.getAllObjects();
     var futures = <Future>[];
     for (final cacheObject in allObjects) {
-      _removeCachedFile(cacheObject, toRemove);
+       futures.add(_removeCachedFile(cacheObject, toRemove));
     }
     await Future.wait(futures);
     await provider.deleteAll(toRemove);
@@ -191,7 +190,9 @@ class CacheStore {
   }
 
   Future<void> dispose() async {
-    _scheduledCleanup?.cancel();
+    if(_scheduledCleanup != null) {
+      _scheduledCleanup?.cancel();
+    }
     final provider = await _cacheInfoRepository;
     await provider.close();
   }

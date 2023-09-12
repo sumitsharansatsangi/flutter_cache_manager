@@ -86,26 +86,29 @@ class HttpGetResponse implements FileServiceResponse {
 
   @override
   DateTime get validTill {
-    // Without a cache-control header we keep the file for a week
     var ageDuration = const Duration(days: 7);
-    final controlHeader = _header(HttpHeaders.cacheControlHeader);
-    if (controlHeader != null) {
-      final controlSettings = controlHeader.split(',');
-      for (final setting in controlSettings) {
-        final sanitizedSetting = setting.trim().toLowerCase();
-        if (sanitizedSetting == 'no-cache') {
-          ageDuration = Duration.zero;
-        }
-        if (sanitizedSetting.startsWith('max-age=')) {
-          final validSeconds =
-              int.tryParse(sanitizedSetting.split('=')[1]) ?? 0;
-          if (validSeconds > 0) {
-            ageDuration = Duration(seconds: validSeconds);
+    if (fileValidity >= 0) {
+      ageDuration = Duration(seconds: fileValidity);
+    } else {
+      // Without a cache-control header we keep the file for a week
+      final controlHeader = _header(HttpHeaders.cacheControlHeader);
+      if (controlHeader != null) {
+        final controlSettings = controlHeader.split(',');
+        for (final setting in controlSettings) {
+          final sanitizedSetting = setting.trim().toLowerCase();
+          if (sanitizedSetting == 'no-cache') {
+            ageDuration = Duration.zero;
+          }
+          if (sanitizedSetting.startsWith('max-age=')) {
+            final validSeconds =
+                int.tryParse(sanitizedSetting.split('=')[1]) ?? 0;
+            if (validSeconds > 0) {
+              ageDuration = Duration(seconds: validSeconds);
+            }
           }
         }
       }
     }
-
     return _receivedTime.add(ageDuration);
   }
 
